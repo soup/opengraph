@@ -21,6 +21,27 @@ describe OpenGraph do
       it { subject.title.should == 'Partialized' }
     end
   end
+
+  describe 'being customisable' do
+    it 'should accept a block' do
+      mock_proc = mock
+      mock_proc.should_receive(:bar).
+        with(an_instance_of(Nokogiri::XML::Element), an_instance_of(OpenGraph::Object)).
+        exactly(8).times
+      OpenGraph.parse(rotten) do |meta, page|
+        mock_proc.bar(meta, page)
+      end
+    end
+
+    it 'should be able to fetch fb data with a block' do
+      og = OpenGraph.parse(rotten) do |meta, page|
+        if meta.attribute('property') && meta.attribute('property').to_s.match(/^fb:(.+)$/i)
+          page[$1.gsub('-','_')] = meta.attribute('content').to_s.split(',').map(&:to_i)
+        end
+      end
+      og.admins.should == [1106591]
+    end
+  end
   
   describe '.fetch' do
     it 'should fetch from the specified URL' do

@@ -9,8 +9,12 @@ module OpenGraph
   #
   # Pass <tt>false</tt> for the second argument if you want to
   # see invalid (i.e. missing a required attribute) data.
-  def self.fetch(uri, strict = true)
-    parse(RestClient.get(uri).body, strict)
+  # 
+  # Pass a block and it will be called on each meta tag to allow
+  # you to fetch them as part of a OpenGraph property (fb:admins
+  # and fb:app_id are among things we may want to retreive).
+  def self.fetch(uri, strict = true, &b)
+    parse(RestClient.get(uri).body, strict, &b)
   rescue RestClient::Exception, SocketError
     false
   end
@@ -22,6 +26,7 @@ module OpenGraph
       if m.attribute('property') && m.attribute('property').to_s.match(/^og:(.+)$/i)
         page[$1.gsub('-','_')] = m.attribute('content').to_s
       end
+      yield m, page if block_given?
     end
     return false if page.keys.empty?
     return false unless page.valid? if strict
