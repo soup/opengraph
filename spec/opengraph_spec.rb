@@ -61,6 +61,25 @@ end
 
 describe OpenGraph::Object do
   let(:rotten){ File.open(File.dirname(__FILE__) + '/examples/rottentomatoes.html')}
+  let(:youtube){ File.open(File.dirname(__FILE__) + '/examples/youtube.html')}
+  
+  context ' a YouTube video' do
+    subject{ OpenGraph.parse(youtube) }
+    
+    it 'should be a video' do
+      subject.type.should == 'video'
+      subject.should be_video
+    end
+
+    it 'should have a video type' do
+      subject.video_type.should == "application/x-shockwave-flash"
+    end
+    
+    it 'should have a video height and width' do
+      subject.video_width.should == "396"
+      subject.video_height.should == "297"
+    end
+  end
   
   context ' a Rotten Tomatoes Movie' do
     subject{ OpenGraph.parse(rotten) }
